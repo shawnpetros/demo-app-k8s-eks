@@ -1,7 +1,7 @@
 resource "aws_security_group" "sp-cluster" {
   name        = "terraform-eks-sp-cluster"
   description = "Cluster communication with worker nodes"
-  vpc_id      = "${module.eks-vpc.default_vpc_id}"
+  vpc_id      = "${module.eks-vpc.vpc_id}"
 
   egress {
     from_port   = 0
