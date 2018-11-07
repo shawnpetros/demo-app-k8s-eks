@@ -1,27 +1,53 @@
-provider "aws" {
-  region = "${var.eks-region}"
+# This data source is included for ease of sample architecture deployment
+# and can be swapped out as necessary.
+data "aws_availability_zones" "available" {}
+
+resource "aws_vpc" "demo" {
+  cidr_block = "10.0.0.0/16"
+
+  tags = "${
+    map(
+     "Name", "terraform-eks-demo-node",
+     "kubernetes.io/cluster/${var.cluster-name}", "shared",
+    )
+  }"
 }
 
-module "eks-vpc" {
-  source = "terraform-aws-modules/vpc/aws"
+resource "aws_subnet" "demo" {
+  count = 2
 
-  name = "eks-vpc"
-  cidr = "10.0.0.0/16"
+  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  cidr_block        = "10.0.${count.index}.0/24"
+  vpc_id            = "${aws_vpc.demo.id}"
 
-  azs             = "${var.eks-azs}"
-  private_subnets = "${var.eks-private-cidrs}"
-  public_subnets  = "${var.eks-public-cidrs}"
+  tags = "${
+    map(
+     "Name", "terraform-eks-demo-node",
+     "kubernetes.io/cluster/${var.cluster-name}", "shared",
+    )
+  }"
+}
 
-  enable_nat_gateway = false
-  single_nat_gateway = true
+resource "aws_internet_gateway" "demo" {
+  vpc_id = "${aws_vpc.demo.id}"
 
-  enable_vpn_gateway = false
-
-  enable_dns_hostnames = true
-
-  tags = {
-    Terraform                                   = "true"
-    Environment                                 = "${var.environment_name}"
-    "kubernetes.io/cluster/${var.cluster-name}" = "shared"
+  tags {
+    Name = "terraform-eks-demo"
   }
+}
+
+resource "aws_route_table" "demo" {
+  vpc_id = "${aws_vpc.demo.id}"
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = "${aws_internet_gateway.demo.id}"
+  }
+}
+
+resource "aws_route_table_association" "demo" {
+  count = 2
+
+  subnet_id      = "${aws_subnet.demo.*.id[count.index]}"
+  route_table_id = "${aws_route_table.demo.id}"
 }

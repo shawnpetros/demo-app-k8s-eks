@@ -1,15 +1,23 @@
-#
-# main EKS terraform resource definition
-#
-resource "aws_eks_cluster" "eks-cluster" {
-  name = "${var.cluster-name}"
+provider "aws" {
+  region = "${var.eks-region}"
+}
 
-  role_arn = "${aws_iam_role.eks-cluster.arn}"
+
+resource "aws_eks_cluster" "demo" {
+  name            = "${var.cluster-name}"
+  role_arn        = "${aws_iam_role.demo-cluster.arn}"
 
   vpc_config {
-    security_group_ids = ["${aws_security_group.sp-cluster.id}"]
-    subnet_ids         = ["${module.eks-vpc.public_subnets}"]
+    security_group_ids = ["${aws_security_group.demo-cluster.id}"]
+    subnet_ids         = ["${aws_subnet.demo.*.id}"]
   }
+
+  depends_on = [
+    "aws_iam_role_policy_attachment.demo-cluster-AmazonEKSClusterPolicy",
+    "aws_iam_role_policy_attachment.demo-cluster-AmazonEKSServicePolicy",
+    "aws_vpc.demo",
+    "aws_subnet.demo",
+  ]
 }
 
 locals {
@@ -17,8 +25,8 @@ locals {
 apiVersion: v1
 clusters:
 - cluster:
-    server: ${aws_eks_cluster.eks-cluster.endpoint}
-    certificate-authority-data: ${aws_eks_cluster.eks-cluster.certificate_authority.0.data}
+    server: ${aws_eks_cluster.demo.endpoint}
+    certificate-authority-data: ${aws_eks_cluster.demo.certificate_authority.0.data}
   name: kubernetes
 contexts:
 - context:
@@ -43,12 +51,4 @@ KUBECONFIG
 
 output "kubeconfig" {
   value = "${local.kubeconfig}"
-}
-
-output "endpoint" {
-  value = "${aws_eks_cluster.eks-cluster.endpoint}"
-}
-
-output "kubeconfig-certificate-authority-data" {
-  value = "${aws_eks_cluster.eks-cluster.certificate_authority.0.data}"
 }
