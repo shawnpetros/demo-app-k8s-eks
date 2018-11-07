@@ -19,7 +19,19 @@
 }
 
 .App-link {
-  color: #61dafb;
+  /* color: #61dafb; */
+  color: #1d1d1d;
+  /* background-color: #5adafd; */
+  background-color: #61dafb;
+  border: none;
+  border-radius: 3px;
+  font-size: 20px;
+  padding: 7px 20px;
+}
+
+.App-link:hover {
+  background-color: #8be6ff;
+  cursor: pointer;
 }
 
 @keyframes App-logo-spin {
