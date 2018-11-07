@@ -27,6 +27,7 @@ resource "aws_security_group_rule" "demo-cluster-ingress-workstation-https" {
   to_port           = 443
   type              = "ingress"
 }
+
 resource "aws_security_group_rule" "demo-cluster-ingress-node-https" {
   description              = "Allow pods to communicate with the cluster API Server"
   from_port                = 443
