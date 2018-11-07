@@ -7,7 +7,7 @@ class App extends Component {
     dbResponse: []
   }
   async dbQuery () {
-    const response = await fetch('/api/ping')
+    const response = await fetch('/api/all')
     const body = await response.json()
     if (response.status !== 200) throw Error(body.message)
     this.setState({ dbResponse: body })
