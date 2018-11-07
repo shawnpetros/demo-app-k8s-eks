@@ -34,3 +34,6 @@ yarn-error.log*
 
 # tf files
 **/.terraform*
+
+# kubectl secrets creation script
+secrets.sh
